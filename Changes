@@ -1,5 +1,12 @@
 Revision history for App-SetScreensaver-Timeout
 
+0.02    2014-11-23 (PERLANCAR)
+
+	- No functional changes.
+
+	- [Bugfix] Fix typo in KDE desktop name.
+
+
 0.01    2014-11-23 (PERLANCAR)
 
         - First release.
