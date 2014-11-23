@@ -46,7 +46,7 @@ sub set_screensaver_timeout {
 
     my $detres = detect_desktop();
 
-    if ($detres->{desktop} eq 'kde') {
+    if ($detres->{desktop} eq 'kde-plasma') {
         my $path = "$ENV{HOME}/.kde/share/config/kscreensaverrc";
         my $ct = read_file($path);
         my $secs = $mins*60;
