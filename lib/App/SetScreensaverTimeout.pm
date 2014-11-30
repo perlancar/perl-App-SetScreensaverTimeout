@@ -78,6 +78,13 @@ _
             schema => ['str*', match=>'\A\d+(?:\.\d+)?\s*(mins?|minutes?|h|hours?)?\z'],
             req => 1,
             pos => 0,
+            # XXX temporary, for testing. will be placed in
+            # Perinci::Sub::Complete eventually
+            completion => sub {
+                require Complete::Bash::History;
+                my %args = @_;
+                Complete::Bash::History::complete_cmdline_from_hist();
+            },
         },
     },
 };
