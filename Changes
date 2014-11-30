@@ -1,5 +1,12 @@
 Revision history for App-SetScreensaver-Timeout
 
+0.05    2014-11-30 (PERLANCAR)
+
+        - No functional changes.
+
+        - [Experimental] Tweak completion, add usage of Complete::Bash::History.
+
+
 0.04    2014-11-30 (PERLANCAR)
 
 	- [Bugfix] get-screensaver-timeout returned seconds instead of minutes
