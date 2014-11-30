@@ -46,7 +46,7 @@ sub get_screensaver_timeout {
         return [500, "gsettings get failed: $!"] if $?;
         $res =~ /^uint32\s+(\d+)$/
             or return [500, "Can't parse gsettings get output"];
-        return [200, "OK", $1, {'func.screensaver'=>'gnome-screensaver'}];
+        return [200, "OK", $1/60, {'func.screensaver'=>'gnome-screensaver'}];
     }
 
     if (proc_exists(name=>"xscreensaver")) {
@@ -55,7 +55,7 @@ sub get_screensaver_timeout {
 
         $ct =~ /^timeout:\s*(\d+):(\d+):(\d+)\s*$/m
             or return [500, "Can't get timeout setting in $path"];
-        return [200, "OK", $1*3600+$2*60+$3,
+        return [200, "OK", ($1*3600+$2*60+$3)/60,
                 {'func.screensaver'=>'xscreensaver'}];
     }
 
