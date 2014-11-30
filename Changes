@@ -1,5 +1,11 @@
 Revision history for App-SetScreensaver-Timeout
 
+0.04    2014-11-30 (PERLANCAR)
+
+	- [Bugfix] get-screensaver-timeout returned seconds instead of minutes
+          for gnome-screensaver and xscreensaver.
+
+
 0.03    2014-11-28 (PERLANCAR)
 
 	- Add utility: get-screensaver-timeout.
