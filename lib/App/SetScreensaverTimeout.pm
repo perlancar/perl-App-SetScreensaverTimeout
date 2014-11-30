@@ -15,7 +15,7 @@ our %SPEC;
 
 $SPEC{get_screensaver_timeout} = {
     v => 1.1,
-    summary => 'Get screensaver timeout',
+    summary => 'Get screensaver timeout (in minutes)',
     description => <<'_',
 
 Provide a common way to get screensaver timeout setting. Support several screen
