@@ -1,5 +1,11 @@
 Revision history for App-SetScreensaver-Timeout
 
+0.06    2014-12-03 (PERLANCAR)
+
+	- [ux] Accept second/sec/s unit, check unit, return current value
+	  (even when no arg is set).
+
+
 0.05    2014-11-30 (PERLANCAR)
 
         - No functional changes.
