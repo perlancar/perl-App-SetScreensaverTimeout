@@ -18,20 +18,6 @@ sub _get_or_set {
 
     my $detres = detect_desktop();
 
-    if ($detres->{desktop} eq 'kde-plasma') {
-        my $path = "$ENV{HOME}/.kde/share/config/kscreensaverrc";
-        my $ct = read_file($path);
-        if ($which eq 'set') {
-            my $secs = $mins*60;
-            $ct =~ s/^(Timeout\s*=\s*)(\S+)/${1}$secs/m
-                or return [500, "Can't subtitute Timeout setting in $path"];
-            write_file($path, $ct);
-        }
-        $ct =~ /^Timeout\s*=\s*(\d+)\s*$/m
-            or return [500, "Can't get Timeout setting in $path"];
-        return [200, "OK", $1/60, {'func.screensaver'=>'kde-plasma'}];
-    }
-
     local $Proc::Find::CACHE = 1;
     if (proc_exists(name=>"gnome-screensaver")) {
         if ($which eq 'set') {
@@ -66,6 +52,21 @@ sub _get_or_set {
         return [200, "OK", ($1*3600+$2*60+$3)/60,
                 {'func.screensaver'=>'xscreensaver'}];
     }
+
+    if ($detres->{desktop} eq 'kde-plasma') {
+        my $path = "$ENV{HOME}/.kde/share/config/kscreensaverrc";
+        my $ct = read_file($path);
+        if ($which eq 'set') {
+            my $secs = $mins*60;
+            $ct =~ s/^(Timeout\s*=\s*)(\S+)/${1}$secs/m
+                or return [500, "Can't subtitute Timeout setting in $path"];
+            write_file($path, $ct);
+        }
+        $ct =~ /^Timeout\s*=\s*(\d+)\s*$/m
+            or return [500, "Can't get Timeout setting in $path"];
+        return [200, "OK", $1/60, {'func.screensaver'=>'kde-plasma'}];
+    }
+
     [412, "Can't detect screensaver type"];
 }
 
