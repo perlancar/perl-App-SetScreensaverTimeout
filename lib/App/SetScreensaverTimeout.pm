@@ -74,29 +74,29 @@ screensaver/desktop environment and set accordingly. Supports xscreensaver,
 gnome-screensaver, and KDE screen locker. Support for other screensavers will be
 added in the future.
 
-# xscreensaver
+* xscreensaver
 
-To set timeout for xscreensaver, the program finds this line in
-`~/.xscreensaver`:
+  To set timeout for xscreensaver, the program finds this line in
+  `~/.xscreensaver`:
 
- timeout:    0:05:00
+      timeout:    0:05:00
 
-modifies the line, save the file, and HUP the xscreensaver process.
+  modifies the line, save the file, and HUP the xscreensaver process.
 
-# gnome-screensaver
+* gnome-screensaver
 
-To set timeout for gnome-screensaver, the program executes this command:
+  To set timeout for gnome-screensaver, the program executes this command:
 
- gsettings set org.gnome.desktop.session idle-delay 300
+      gsettings set org.gnome.desktop.session idle-delay 300
 
-# KDE
+* KDE
 
-To set timeout for the KDE screen locker, the program looks for this line in
-`~/.kde/share/config/kscreensaverrc`:
+  To set timeout for the KDE screen locker, the program looks for this line in
+  `~/.kde/share/config/kscreensaverrc`:
 
- Timeout=300
+      Timeout=300
 
-modifies the line, save the file.
+  modifies the line, save the file.
 
 _
     args => {
