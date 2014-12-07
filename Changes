@@ -1,5 +1,13 @@
 Revision history for App-SetScreensaver-Timeout
 
+0.07    2014-12-08 (PERLANCAR)
+
+	- Change ordering of detection, detect processes
+	  gnome-screensaver/xscreensaver first before detecting by desktop
+	  type, since it's possible to run KDE but still use xscreensaver
+	  (which I'm planning to do BTW).
+
+
 0.06    2014-12-03 (PERLANCAR)
 
 	- [ux] Accept second/sec/s unit, check unit, return current value
