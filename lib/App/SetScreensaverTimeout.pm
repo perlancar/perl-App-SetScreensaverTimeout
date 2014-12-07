@@ -13,6 +13,62 @@ use Proc::Find qw(proc_exists);
 
 our %SPEC;
 
+sub _get_or_set {
+    my ($which, $mins) = @_;
+
+    my $detres = detect_desktop();
+
+    if ($detres->{desktop} eq 'kde-plasma') {
+        my $path = "$ENV{HOME}/.kde/share/config/kscreensaverrc";
+        my $ct = read_file($path);
+        if ($which eq 'set') {
+            my $secs = $mins*60;
+            $ct =~ s/^(Timeout\s*=\s*)(\S+)/${1}$secs/m
+                or return [500, "Can't subtitute Timeout setting in $path"];
+            write_file($path, $ct);
+        }
+        $ct =~ /^Timeout\s*=\s*(\d+)\s*$/m
+            or return [500, "Can't get Timeout setting in $path"];
+        return [200, "OK", $1/60, {'func.screensaver'=>'kde-plasma'}];
+    }
+
+    local $Proc::Find::CACHE = 1;
+    if (proc_exists(name=>"gnome-screensaver")) {
+        if ($which eq 'set') {
+            my $secs = $mins*60;
+            system "gsettings", "set", "org.gnome.desktop.session",
+                "idle-delay", $secs;
+            return [500, "gsettings set failed: $!"] if $?;
+        }
+        my $res = `gsettings get org.gnome.desktop.session idle-delay`;
+        return [500, "gsettings get failed: $!"] if $?;
+        $res =~ /^uint32\s+(\d+)$/
+            or return [500, "Can't parse gsettings get output"];
+        return [200, "OK", $1/60, {'func.screensaver'=>'gnome-screensaver'}];
+    }
+
+    if (proc_exists(name=>"xscreensaver")) {
+        my $path = "$ENV{HOME}/.xscreensaver";
+        my $ct = read_file($path);
+        if ($which eq 'set') {
+            my $hours = int($mins/60);
+            $mins -= $hours*60;
+
+            $ct =~ s/^(timeout:\s*)(\S+)/
+                sprintf("%s%d:%02d:%02d",$1,$hours,$mins,0)/em
+                    or return [500, "Can't subtitute timeout setting in $path"];
+            write_file($path, $ct);
+            system "killall", "-HUP", "xscreensaver";
+            $? == 0 or return [500, "Can't kill -HUP xscreensaver"];
+        }
+        $ct =~ /^timeout:\s*(\d+):(\d+):(\d+)\s*$/m
+            or return [500, "Can't get timeout setting in $path"];
+        return [200, "OK", ($1*3600+$2*60+$3)/60,
+                {'func.screensaver'=>'xscreensaver'}];
+    }
+    [412, "Can't detect screensaver type"];
+}
+
 $SPEC{get_screensaver_timeout} = {
     v => 1.1,
     summary => 'Get screensaver timeout (in minutes)',
@@ -28,38 +84,7 @@ _
     },
 };
 sub get_screensaver_timeout {
-    my %args = @_;
-
-    my $detres = detect_desktop();
-
-    if ($detres->{desktop} eq 'kde-plasma') {
-        my $path = "$ENV{HOME}/.kde/share/config/kscreensaverrc";
-        my $ct = read_file($path);
-        $ct =~ /^Timeout\s*=\s*(\d+)\s*$/m
-            or return [500, "Can't get Timeout setting in $path"];
-        return [200, "OK", $1/60, {'func.screensaver'=>'kde-plasma'}];
-    }
-
-    local $Proc::Find::CACHE = 1;
-    if (proc_exists(name=>"gnome-screensaver")) {
-        my $res = `gsettings get org.gnome.desktop.session idle-delay`;
-        return [500, "gsettings get failed: $!"] if $?;
-        $res =~ /^uint32\s+(\d+)$/
-            or return [500, "Can't parse gsettings get output"];
-        return [200, "OK", $1/60, {'func.screensaver'=>'gnome-screensaver'}];
-    }
-
-    if (proc_exists(name=>"xscreensaver")) {
-        my $path = "$ENV{HOME}/.xscreensaver";
-        my $ct = read_file($path);
-
-        $ct =~ /^timeout:\s*(\d+):(\d+):(\d+)\s*$/m
-            or return [500, "Can't get timeout setting in $path"];
-        return [200, "OK", ($1*3600+$2*60+$3)/60,
-                {'func.screensaver'=>'xscreensaver'}];
-    }
-
-    [412, "Can't detect screensaver type"];
+    _get_or_set('get');
 }
 
 my $to_re = '\A\d+(?:\.\d+)?\s*(mins?|minutes?|h|hours?|seconds?|secs?|s)?\z';
@@ -134,51 +159,13 @@ sub set_screensaver_timeout {
     $mins = int($mins);
     $mins = 1 if $mins < 1;
 
-    my $detres = detect_desktop();
-
-    if ($detres->{desktop} eq 'kde-plasma') {
-        my $path = "$ENV{HOME}/.kde/share/config/kscreensaverrc";
-        my $ct = read_file($path);
-        my $secs = $mins*60;
-        $ct =~ s/^(Timeout\s*=\s*)(\S+)/${1}$secs/m
-            or return [500, "Can't subtitute Timeout setting in $path"];
-        write_file($path, $ct);
-        return get_screensaver_timeout();
-    }
-
-    local $Proc::Find::CACHE = 1;
-    if (proc_exists(name=>"gnome-screensaver")) {
-        my $secs = $mins*60;
-        system "gsettings", "set", "org.gnome.desktop.session", "idle-delay",
-            $secs;
-        return [500, "gsettings set failed: $!"] if $?;
-        return get_screensaver_timeout();
-    }
-
-    if (proc_exists(name=>"xscreensaver")) {
-        my $path = "$ENV{HOME}/.xscreensaver";
-        my $ct = read_file($path);
-        my $hours = int($mins/60);
-        $mins -= $hours*60;
-
-        $ct =~ s/^(timeout:\s*)(\S+)/
-            sprintf("%s%d:%02d:%02d",$1,$hours,$mins,0)/em
-                or return [500, "Can't subtitute timeout setting in $path"];
-        write_file($path, $ct);
-        system "killall", "-HUP", "xscreensaver";
-        $? == 0 or return [500, "Can't kill -HUP xscreensaver"];
-        return get_screensaver_timeout();
-    }
-
-    [412, "Can't detect screensaver type"];
+    _get_or_set('set', $mins);
 }
 
 1;
 # ABSTRACT: Set screensaver timeout
 
-=head1 BUGS
-
-Known bugs:
+=head1 KNOWN BUGS
 
 =over
 
