@@ -69,9 +69,34 @@ $SPEC{set_screensaver_timeout} = {
     summary => 'Set screensaver timeout',
     description => <<'_',
 
-Provide a common way to quickly set screensaver timeout. Support xscreensaver,
+Provide a common way to quickly set screensaver timeout. Will detect the running
+screensaver/desktop environment and set accordingly. Supports xscreensaver,
 gnome-screensaver, and KDE screen locker. Support for other screensavers will be
 added in the future.
+
+# xscreensaver
+
+To set timeout for xscreensaver, the program finds this line in
+`~/.xscreensaver`:
+
+ timeout:    0:05:00
+
+modifies the line, save the file, and HUP the xscreensaver process.
+
+# gnome-screensaver
+
+To set timeout for gnome-screensaver, the program executes this command:
+
+ gsettings set org.gnome.desktop.session idle-delay 300
+
+# KDE
+
+To set timeout for the KDE screen locker, the program looks for this line in
+`~/.kde/share/config/kscreensaverrc`:
+
+ Timeout=300
+
+modifies the line, save the file.
 
 _
     args => {
@@ -150,3 +175,19 @@ sub set_screensaver_timeout {
 
 1;
 # ABSTRACT: Set screensaver timeout
+
+=head1 BUGS
+
+Known bugs:
+
+=over
+
+=item * Sometimes fail to lock on KDE
+
+KDE is supposed to pick up on the changes in
+`~/.kde/share/config/kscreensaverrc` immediately, and this is confirmed by
+running the dialog `kcmshell4 screensaver`. However, sometimes the change does
+not take effect and the screensaver won't trigger even after the timeout has
+long passed.
+
+=back
