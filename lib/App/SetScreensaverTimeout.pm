@@ -13,6 +13,11 @@ use Proc::Find qw(proc_exists);
 
 our %SPEC;
 
+$SPEC{':package'} = {
+    v => 1.1,
+    summary => 'Set screensaver timeout',
+};
+
 sub _get_or_set {
     my ($which, $mins) = @_;
 
@@ -164,7 +169,7 @@ sub set_screensaver_timeout {
 }
 
 1;
-# ABSTRACT: Set screensaver timeout
+# ABSTRACT:
 
 =head1 KNOWN BUGS
 
