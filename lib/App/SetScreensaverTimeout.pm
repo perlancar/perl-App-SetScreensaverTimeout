@@ -35,7 +35,11 @@ sub _get_or_set {
         return [500, "gsettings get failed: $!"] if $?;
         $res =~ /^uint32\s+(\d+)$/
             or return [500, "Can't parse gsettings get output"];
-        return [200, "OK", $1/60, {'func.screensaver'=>'gnome-screensaver'}];
+        my $val = $1/60;
+        return [200, "OK", ($which eq 'set' ? undef : $val), {
+            'func.timeout' => $val,
+            'func.screensaver'=>'gnome-screensaver',
+        }];
     }
 
     if (proc_exists(name=>"xscreensaver")) {
@@ -54,8 +58,11 @@ sub _get_or_set {
         }
         $ct =~ /^timeout:\s*(\d+):(\d+):(\d+)\s*$/m
             or return [500, "Can't get timeout setting in $path"];
-        return [200, "OK", ($1*3600+$2*60+$3)/60,
-                {'func.screensaver'=>'xscreensaver'}];
+        my $val = ($1*3600+$2*60+$3)/60;
+        return [200, "OK", ($which eq 'set' ? undef : $val), {
+            'func.timeout' => $val,
+            'func.screensaver' => 'xscreensaver',
+        }];
     }
 
     if ($detres->{desktop} eq 'kde-plasma') {
@@ -69,7 +76,11 @@ sub _get_or_set {
         }
         $ct =~ /^Timeout\s*=\s*(\d+)\s*$/m
             or return [500, "Can't get Timeout setting in $path"];
-        return [200, "OK", $1/60, {'func.screensaver'=>'kde-plasma'}];
+        my $val = $1/60;
+        return [200, "OK", ($which eq 'set' ? undef : $val), {
+            'func.timeout' => $val,
+            'func.screensaver'=>'kde-plasma',
+        }];
     }
 
     [412, "Can't detect screensaver type"];
