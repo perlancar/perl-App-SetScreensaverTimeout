@@ -1,5 +1,12 @@
 Revision history for App-SetScreensaver-Timeout
 
+0.08    2015-01-08 (PERLANCAR)
+
+	- To avoid having to '>/dev/null' everytime we set screensaver
+	  timeout in a script, the current timeout value is moved to result
+	  metadata 'func.timeout' which can be viewed using --json.
+
+
 0.07    2014-12-08 (PERLANCAR)
 
 	- Change ordering of detection, detect processes
