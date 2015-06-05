@@ -1,5 +1,10 @@
 Revision history for App-SetScreensaver-Timeout
 
+0.10    2015-06-05 (PERLANCAR)
+
+	- Add support for gnome-fallback.
+
+
 0.09    2015-06-05 (PERLANCAR)
 
 	- Add support for gnome-classic (also uses gsettings
