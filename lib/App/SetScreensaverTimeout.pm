@@ -26,7 +26,7 @@ sub _get_or_set {
     local $Proc::Find::CACHE = 1;
 
     if (proc_exists(name=>"gnome-screensaver") ||
-            $detres->{desktop} =~ /^gnome(-classic)?$/) {
+            $detres->{desktop} =~ /^gnome(-classic|-fallback)?$/) {
         if ($which eq 'set') {
             my $secs = $mins*60;
             system "gsettings", "set", "org.gnome.desktop.session",
