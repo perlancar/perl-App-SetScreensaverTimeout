@@ -1,5 +1,13 @@
 Revision history for App-SetScreensaver-Timeout
 
+0.09    2015-06-05 (PERLANCAR)
+
+	- Add support for gnome-classic (also uses gsettings
+	  org.gnome.desktop.session lock-delay, but it's currently not
+	  working on my PC right now, not blanking screen after delay
+	  passed).
+
+
 0.08    2015-01-08 (PERLANCAR)
 
 	- To avoid having to '>/dev/null' everytime we set screensaver
