@@ -9,6 +9,7 @@ use warnings;
 
 use Desktop::Detect qw(detect_desktop);
 use File::Slurp::Tiny qw(read_file write_file);
+use File::Which qw(which);
 use Proc::Find qw(proc_exists);
 
 our %SPEC;
@@ -18,10 +19,28 @@ $SPEC{':package'} = {
     summary => 'Set screensaver timeout',
 };
 
+sub _parse_xset_q {
+    my $output = `xset q`;
+    return undef if $?;
+    my $res = {};
+    {
+        my @paras;
+        while ($output =~ /^(\S[^\n]+):\n((?:[ \t]+\S[^\n]*\n)*)/gm) {
+            $res->{$1} = $2;
+        }
+    }
+    return undef unless keys %$res;
+    $res;
+}
+
 sub _get_or_set {
-    my ($which, $mins) = @_;
+    my ($which, $mins, $opts) = @_;
 
     my $detres = detect_desktop();
+
+    if ($opts && $opts->{method} && $opts->{method} eq 'xset') {
+        goto XSET;
+    }
 
     local $Proc::Find::CACHE = 1;
 
@@ -82,6 +101,26 @@ sub _get_or_set {
         return [200, "OK", ($which eq 'set' ? undef : $val), {
             'func.timeout' => $val,
             'func.screensaver'=>'kde-plasma',
+        }];
+    }
+
+    my $xsetq;
+  XSET:
+    if (which("xset") && ($xsetq = _parse_xset_q()) &&
+            $xsetq->{'Screen Saver'}) {
+        if ($which eq 'set') {
+            my $cmd = "xset s " . int($mins*60);
+            `$cmd`;
+            return [500, "'xset s' failed: $!"] if $?;
+        }
+        $xsetq = _parse_xset_q() or return [500, "'xset q' failed"];
+        my $tmp = $xsetq->{'Screen Saver'} // '';
+        $tmp =~ /timeout:\s*(\d+)/
+            or return [500, "Can't find Screen Saver setting in 'xset q'"];
+        my $val = $1/60;
+        return [200, "OK", ($which eq 'set' ? undef : $val), {
+            'func.timeout' => $val,
+            'func.screensaver' => 'X',
         }];
     }
 
