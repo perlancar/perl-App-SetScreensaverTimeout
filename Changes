@@ -1,5 +1,10 @@
 Revision history for App-SetScreensaver-Timeout
 
+0.11    2015-06-08 (PERLANCAR)
+
+	- Add support for plain X (xset) [requested by SREZIC, RT#105048].
+
+
 0.10    2015-06-05 (PERLANCAR)
 
 	- Add support for gnome-fallback.
