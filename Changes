@@ -1,5 +1,11 @@
 Revision history for App-SetScreensaver-Timeout
 
+0.13    2015-09-25 (PERLANCAR)
+
+	- [Incompatible change] Use 'duration' type for 'timeout' argument,
+	  you can still use e.g. '3min' in CLI but will now return seconds.
+
+
 0.12    2015-09-03 (PERLANCAR)
 
 	- No functional changes.
