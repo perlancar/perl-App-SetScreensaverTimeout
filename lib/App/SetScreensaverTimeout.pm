@@ -56,7 +56,7 @@ sub _get_or_set {
         return [500, "gsettings get failed: $!"] if $?;
         $res =~ /^uint32\s+(\d+)$/
             or return [500, "Can't parse gsettings get output"];
-        my $val = $1/60;
+        my $val = $1;
         return [200, "OK", ($which eq 'set' ? undef : $val), {
             'func.timeout' => $val,
             'func.screensaver'=>'gnome-screensaver',
@@ -79,7 +79,7 @@ sub _get_or_set {
         }
         $ct =~ /^timeout:\s*(\d+):(\d+):(\d+)\s*$/m
             or return [500, "Can't get timeout setting in $path"];
-        my $val = ($1*3600+$2*60+$3)/60;
+        my $val = ($1*3600+$2*60+$3);
         return [200, "OK", ($which eq 'set' ? undef : $val), {
             'func.timeout' => $val,
             'func.screensaver' => 'xscreensaver',
@@ -97,7 +97,7 @@ sub _get_or_set {
         }
         $ct =~ /^Timeout\s*=\s*(\d+)\s*$/m
             or return [500, "Can't get Timeout setting in $path"];
-        my $val = $1/60;
+        my $val = $1;
         return [200, "OK", ($which eq 'set' ? undef : $val), {
             'func.timeout' => $val,
             'func.screensaver'=>'kde-plasma',
@@ -117,7 +117,7 @@ sub _get_or_set {
         my $tmp = $xsetq->{'Screen Saver'} // '';
         $tmp =~ /timeout:\s*(\d+)/
             or return [500, "Can't find Screen Saver setting in 'xset q'"];
-        my $val = $1/60;
+        my $val = $1;
         return [200, "OK", ($which eq 'set' ? undef : $val), {
             'func.timeout' => $val,
             'func.screensaver' => 'X',
@@ -129,7 +129,7 @@ sub _get_or_set {
 
 $SPEC{get_screensaver_timeout} = {
     v => 1.1,
-    summary => 'Get screensaver timeout (in minutes)',
+    summary => 'Get screensaver timeout',
     description => <<'_',
 
 Provide a common way to get screensaver timeout setting. Support several screen
@@ -137,15 +137,13 @@ savers (see `set_screensaver_timeout`).
 
 _
     result => {
-        summary => 'Timeout value, in minutes',
+        summary => 'Timeout value, in seconds',
         schema  => 'float*',
     },
 };
 sub get_screensaver_timeout {
     _get_or_set('get');
 }
-
-my $to_re = '\A\d+(?:\.\d+)?\s*(mins?|minutes?|h|hours?|seconds?|secs?|s)?\z';
 
 $SPEC{set_screensaver_timeout} = {
     v => 1.1,
@@ -184,11 +182,10 @@ added in the future.
 _
     args => {
         timeout => {
-            summary => 'Value, default in minutes',
-            schema => ['str*', match=>$to_re],
+            summary => 'Value',
+            schema => ['duration*'],
+            'x.perl.coerce_to' => 'int(secs)',
             pos => 0,
-            # XXX temporary, for testing. will be placed in
-            # Perinci::Sub::Complete eventually
             completion => sub {
                 require Complete::Bash::History;
                 my %args = @_;
@@ -196,26 +193,28 @@ _
             },
         },
     },
+    examples => [
+        {
+            summary => 'Set timeout to 3 minutes',
+            src => '[[prog]] 3min',
+            src_plang => 'bash', # because direct function call doesn't grok '3min', coercing is done by perisga-argv
+            'x.doc.show_result' => 0,
+            test => 0,
+        },
+        {
+            summary => 'Set timeout to 5 minutes',
+            argv => [300],
+            'x.doc.show_result' => 0,
+            test => 0,
+        },
+    ],
 };
 sub set_screensaver_timeout {
     my %args = @_;
 
     my $to = $args{timeout} or return get_screensaver_timeout();
 
-    $to =~ /$to_re/ or return [400, "Invalid timeout value, must match $to_re"];
-
-    my ($mins) = $to =~ /(\d+(?:\.\d+)?)/;
-    if ($to =~ /hour|h/) {
-        $mins *= 60;
-    } elsif ($to =~ /minutes?|mins?/) {
-        # noop
-    } elsif ($to =~ /seconds?|secs?|s/) {
-        $mins /= 60;
-    }
-
-    # kde screen locker only accepts whole minutes
-    $mins = int($mins);
-    $mins = 1 if $mins < 1;
+    my $mins = int($to/60); $mins = 1 if $mins < 1;
 
     _get_or_set('set', $mins);
 }
