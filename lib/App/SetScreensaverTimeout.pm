@@ -184,7 +184,6 @@ _
         timeout => {
             summary => 'Value',
             schema => ['duration*'],
-            'x.perl.coerce_to' => 'int(secs)',
             pos => 0,
             completion => sub {
                 require Complete::Bash::History;
