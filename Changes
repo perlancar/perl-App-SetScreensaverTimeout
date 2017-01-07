@@ -1,5 +1,3 @@
-Revision history for App-SetScreensaver-Timeout
-
 0.13    2015-09-25 (PERLANCAR)
 
 	- [Incompatible change] Use 'duration' type for 'timeout' argument,
